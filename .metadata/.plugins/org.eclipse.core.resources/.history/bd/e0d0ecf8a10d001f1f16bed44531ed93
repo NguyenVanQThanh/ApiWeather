@@ -1,0 +1,7 @@
+package com.skyapi.weatherforecast;
+
+import org.springframework.data.repository.CrudRepository;
+
+public interface Location extends CrudRepository<Location, ID> {
+
+}
