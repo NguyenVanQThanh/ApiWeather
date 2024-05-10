@@ -19,4 +19,7 @@ public class LocationService {
     public List<Location> list(){
         return repository.findUnTrashed();
     }
+    public Location get(String code){
+        return repository.findByCode(code);
+    }
 }

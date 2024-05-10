@@ -23,6 +23,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(LocationApiController.class)
 public class LocationApiControllerTest {
     private static final String END_POINT_PATH = "/v1/locations";
+    private static final String RESPONSE_CONTENT_TYPE = "application/hal+json";
+    private static final String REQUEST_CONTENT_TYPE = "application/json";
+
     @Autowired
     MockMvc mockMvc;
     @Autowired
@@ -100,6 +103,52 @@ public class LocationApiControllerTest {
                 .andExpect(jsonPath("$[0].city_name", is("New York City")))
                 .andExpect(jsonPath("$[1].code", is("LACA_USA")))
                 .andExpect(jsonPath("$[1].city_name", is("Los Angeles")))
+                .andDo(print());
+    }
+    @Test
+    public void testGetShouldReturn404NotFound() throws Exception {
+        String locationCode = "ABCDEF";
+        String requestURI = END_POINT_PATH + "/"+ locationCode;
+
+//        Mockito.when(service.get(locationCode)).thenThrow(LocationNotFoundException.class);
+
+        mockMvc.perform(get(requestURI))
+                .andExpect(status().isNotFound())
+                .andDo(print());
+    }
+    @Test
+    public void testGetShouldReturn405MethodNotAllowed() throws Exception {
+        String requestURI = END_POINT_PATH + "/ABCDEF";
+
+        mockMvc.perform(post(requestURI))
+                .andExpect(status().isMethodNotAllowed())
+                .andDo(print());
+    }
+    @Test
+    public void testGetShouldReturn200OK() throws Exception {
+        String code = "LACA_USA";
+        String requestURI = END_POINT_PATH + "/" + code;
+
+        Location location = new Location();
+        location.setCode("LACA_USA");
+        location.setCityName("Los Angeles");
+        location.setRegionName("California");
+        location.setCountryCode("US");
+        location.setCountryName("United States of America");
+        location.setEnabled(true);
+
+        Mockito.when(service.get(code)).thenReturn(location);
+
+        mockMvc.perform(get(requestURI))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$.code", is(code)))
+                .andExpect(jsonPath("$.city_name", is("Los Angeles")))
+//                .andExpect(jsonPath("$._links.self.href", is("http://localhost" + END_POINT_PATH + "/" + code)))
+//                .andExpect(jsonPath("$._links.realtime_weather.href", is("http://localhost/v1/realtime/" + code)))
+//                .andExpect(jsonPath("$._links.hourly_forecast.href", is("http://localhost/v1/hourly/" + code)))
+//                .andExpect(jsonPath("$._links.daily_forecast.href", is("http://localhost/v1/daily/" + code)))
+//                .andExpect(jsonPath("$._links.full_forecast.href", is("http://localhost/v1/full/" + code)))
                 .andDo(print());
     }
 }
