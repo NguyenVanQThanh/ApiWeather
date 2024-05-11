@@ -1,9 +1,8 @@
 package com.skyapi.weatherforecast.location;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.hamcrest.CoreMatchers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skyapi.weatherforecast.common.Location;
@@ -17,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.Collections;
 import java.util.List;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -149,6 +149,69 @@ public class LocationApiControllerTest {
 //                .andExpect(jsonPath("$._links.hourly_forecast.href", is("http://localhost/v1/hourly/" + code)))
 //                .andExpect(jsonPath("$._links.daily_forecast.href", is("http://localhost/v1/daily/" + code)))
 //                .andExpect(jsonPath("$._links.full_forecast.href", is("http://localhost/v1/full/" + code)))
+                .andDo(print());
+    }
+    @Test
+    public void testUpdateShouldReturn404NotFound() throws LocationNotFoundException, Exception {
+        String code = "ABCDEF";
+        Location location = new Location();
+        location.setCode(code);
+        location.setCityName("Los Angeles");
+        location.setRegionName("California");
+        location.setCountryCode("US");
+        location.setCountryName("United States of America");
+        location.setEnabled(true);
+        Mockito.when(service.update(location)).thenThrow(new LocationNotFoundException("Not Found"));
+        String bodyContent = mapper.writeValueAsString(location);
+
+
+        mockMvc.perform(put(END_POINT_PATH).contentType("application/json").content(bodyContent))
+                .andExpect(status().isNotFound())
+                .andDo(print());
+    }
+
+    @Test
+    public void testUpdateShouldReturn200OK() throws Exception, LocationNotFoundException {
+        String code = "NYC_USA";
+
+        Location location = new Location();
+        location.setCode("NYC_USA");
+        location.setCityName("New York City");
+        location.setRegionName("New York");
+        location.setCountryCode("US");
+        location.setCountryName("United States of America");
+        location.setEnabled(true);
+
+        Mockito.when(service.update(location)).thenReturn(location);
+        String bodyContent = mapper.writeValueAsString(location);
+
+        mockMvc.perform(put(END_POINT_PATH).contentType("application/json").content(bodyContent))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$.code", is("NYC_USA")))
+                .andExpect(jsonPath("$.city_name", is("New York City")))
+                .andDo(print());
+    }
+    @Test
+    public void testDeleteShouldReturn404NotFound() throws LocationNotFoundException, Exception {
+        String code = "LACA_US";
+        String requestUrl = END_POINT_PATH + "/" + code;
+
+        Mockito.doThrow(LocationNotFoundException.class).when(service).delete(code);
+
+        mockMvc.perform(delete(requestUrl))
+                .andExpect(status().isNotFound())
+                .andDo(print());
+    }
+    @Test
+    public void testDeleteShouldReturn204NoContent() throws LocationNotFoundException, Exception {
+        String code = "LACA_US";
+        String requestUrl = END_POINT_PATH + "/" + code;
+
+        Mockito.doThrow(LocationNotFoundException.class).when(service).delete(code);
+
+        mockMvc.perform(delete(requestUrl))
+                .andExpect(status().isNoContent())
                 .andDo(print());
     }
 }

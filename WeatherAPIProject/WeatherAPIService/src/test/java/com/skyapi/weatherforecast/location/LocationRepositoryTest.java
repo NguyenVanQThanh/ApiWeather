@@ -47,4 +47,14 @@ public class LocationRepositoryTest {
         assertThat(location).isNotNull();
         assertThat(location.getCode()).isEqualTo(code);
     }
+    @Test
+    public void testTrashSuccess(){
+        String code = "LACA_US";
+        repository.trashByCode(code);
+        Location location = repository.findByCode(code);
+
+        assertThat(location).isNotNull();
+        assertThat(location.getCode()).isEqualTo(code);
+    }
+
 }

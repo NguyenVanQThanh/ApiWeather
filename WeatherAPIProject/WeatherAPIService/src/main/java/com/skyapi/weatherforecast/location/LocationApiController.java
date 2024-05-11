@@ -41,4 +41,22 @@ public class LocationApiController {
         }
         return ResponseEntity.ok(location);
     }
+    @PutMapping
+    public ResponseEntity<?> updateLocation(@RequestBody @Valid Location location){
+        try{
+            Location updatedLocation = service.update(location);
+            return ResponseEntity.ok(updatedLocation);
+        } catch (LocationNotFoundException e){
+            return ResponseEntity.notFound().build();
+        }
+    }
+    @DeleteMapping("/{code}")
+    public ResponseEntity<?> deleteLocation(@PathVariable("code") String code){
+        try{
+            service.delete(code);
+            return ResponseEntity.noContent().build();
+        } catch (LocationNotFoundException e){
+            return ResponseEntity.notFound().build();
+        }
+    }
 }
