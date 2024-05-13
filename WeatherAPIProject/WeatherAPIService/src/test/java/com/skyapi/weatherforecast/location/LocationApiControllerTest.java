@@ -46,8 +46,6 @@ public class LocationApiControllerTest {
 
     @Test
     public void testAddShouldReturn201Created() throws Exception {
-        String code = "NYC_USA";
-
         Location location = new Location();
         location.setCode("NYC_USA");
         location.setCityName("New York City");
@@ -212,6 +210,25 @@ public class LocationApiControllerTest {
 
         mockMvc.perform(delete(requestUrl))
                 .andExpect(status().isNoContent())
+                .andDo(print());
+    }
+    @Test
+    public void testValidateRequestBodyLocationCode() throws Exception {
+        Location location = new Location();
+//        location.setCode("NYC_USA");
+        location.setCityName("New York City");
+        location.setRegionName("New York");
+        location.setCountryCode("US");
+        location.setCountryName("United States of America");
+        location.setEnabled(true);
+        String bodyContent = mapper.writeValueAsString(location);
+
+        mockMvc.perform(post(END_POINT_PATH).contentType("application/json").content(bodyContent))
+                .andExpect(status().isBadRequest())
+//                .andExpect(content().contentType("application/json"))
+//                .andExpect(jsonPath("$.code", is("NYC_USA")))
+//                .andExpect(jsonPath("$.city_name", is("New York City")))
+//                .andExpect(header().string("Location", "/v1/locations/NYC_USA"))
                 .andDo(print());
     }
 }
